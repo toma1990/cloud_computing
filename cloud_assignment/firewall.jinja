@@ -1,0 +1,11 @@
+# creates firewall instance
+# code reference https://cloud.google.com/compute/docs/reference/rest/v1/firewalls
+resources:
+- name: {{ env["name"] }}
+  type: compute.v1.firewall # firewall resource type
+  properties:
+    network: {{ properties["network"] }} # defines the network the firewall applies too
+    sourceRanges: ["0.0.0.0/0"] # defines the source of IP ranges that traffic is allowed from
+    allowed:
+    - IPProtocol: {{ properties["IPProtocol"] }} # specifies the protocol the rule applies too
+      ports: {{ properties["Port"] }} # specifies the ports for the specific protocols

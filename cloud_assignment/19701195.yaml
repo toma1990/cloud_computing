@@ -1,0 +1,76 @@
+imports: #imports associated jinja files for use within the YAML configuration file
+- path: vm1.jinja
+- path: vm2.jinja
+- path: network.jinja
+- path: subnetwork.jinja
+- path: sql.jinja
+- path: bucket.jinja
+- path: firewall.jinja
+
+resources: # deploys vm1 with custom subnetwork in europe-west1-c zone
+- name: vm1
+  type: vm1.jinja
+  properties:
+   zone: europe-west1-c
+   diskSizeGb: "1000"
+   subnet: $(ref.customsubnet.selfLink) # represents the subnet to use
+
+- name: vm2 # deploys vm2  with custom subnet in us-west1-a zone
+  type: vm2.jinja
+  properties:
+   zone: us-west1-a
+   subnet: $(ref.customsubnet.selfLink) # represents the subnet to use
+   diskSizeGb: "1000"
+   
+- name: custom-net # deploys custom network
+  type: network.jinja
+  
+- name: custom-net-firewall # firewall for the network instance for tcp protocols
+  type: firewall.jinja
+  properties:
+   network: $(ref.custom-net.selfLink) #  represents the network it will cover
+   IPProtocol: TCP # ip protocols the firewall will cover
+   Port: [22, 80, 3389] # ports that the firewall covers
+   
+- name: custom-net-allow-icmp # firewall on custom network to allow icmp
+  type: firewall.jinja
+  properties:
+    network: $(ref.custom-net.selfLink) #  represents the network it will cover
+    IPProtocol: ICMP
+    Port: []
+
+- name: customsubnet # deploys custom subnetwork
+  type: subnetwork.jinja
+  properties:
+   ipCidrRange: 10.10.0.0/24 # method of allocating ip addresses
+   network: $(ref.custom-net.selfLink) 
+   region: europe-west1
+   
+- name: customsubnet-firewall # firewall for the subnetwork instance for tcp protocols
+  type: firewall.jinja
+  properties:
+   network: $(ref.customsubnet.selfLink) #  represents the subnet it will cover
+   IPProtocol: TCP # ip protocols the firewall will cover
+   Port: [22, 80, 3389] # ports that the firewall covers
+   
+- name: customsubnet-allow-icmp # firewall on custom subnetwork to allow icmp
+  type: firewall.jinja
+  properties:
+    network: $(ref.customsubnet.selfLink) # represents the subnet it will cover
+    IPProtocol: ICMP
+    Port: []
+
+- name: database # deploys sql instance with database to store database information
+  type: sql.jinja
+  properties:
+    tier: db-n1-standard-1
+    zone: europe-west1-b
+    readReplicas: 1
+    failOver: true
+    replicationType: SYNCHRONOUS # set as synchronous to avoid data loss in case of failure
+    
+- name: 19701195bucketTA # deploys bucket to store images and reviews
+  type: bucket.jinja
+
+   
+   

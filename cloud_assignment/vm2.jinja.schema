@@ -1,0 +1,21 @@
+info:
+  title: vm2 schema
+  author: Thomas Anderson(19701195)
+  description: Ensures the template can only deploy if the diskSizeGb and zone property exists
+  version: 1.0
+  
+# jinja file the schema refers to
+imports: 
+- path: vm2.jinja
+
+required: # required properties for vm to use
+- diskSizeGb
+- zone 
+
+properties:
+  diskSizeGb:
+   type: string
+   # description: Specifies the size in Gb for the operating system disk
+  zone:
+   type: string
+   # description: Specifies the zone for the vm

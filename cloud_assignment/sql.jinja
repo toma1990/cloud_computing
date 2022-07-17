@@ -1,0 +1,48 @@
+# creates sql instance with database and user addition
+# code reference: https://github.com/GoogleCloudPlatform/deploymentmanager-samples/blob/master/examples/v2/sqladmin/jinja/sqladmin.jinja
+# methods for naming functions
+{% set deployment_name = env['deployment']  %}
+{% set instance_name = deployment_name + '-instance'  %}
+{% set replica_name = deployment_name + '-replica'  %}
+{% set failover_name = deployment_name + '-failover'  %}
+{% set database_name = deployment_name + '-db'  %}
+
+resources:
+- name: {{ instance_name }} #creation of the sql instance
+  type: sqladmin-v1beta4:instances # sql resource type
+  properties:
+    zone: {{ properties['zone'] }}  
+    settings:
+      tier: {{ properties['tier'] }}
+      backupConfiguration:
+        binaryLogEnabled: true
+        enabled: true
+
+- name: {{ database_name }} # creation of the database
+  type: sqladmin-v1beta4:databases #  database resource type
+  properties:
+    name: {{ database_name }}
+    instance: $(ref.{{ instance_name }}.name) # refers to the instance of which sql was created for
+    charset: utf8
+{% set dependency = 'database_name' %}
+
+- name: {{ replica_name }}-{{n}} # replicates database incase of outage and is set in different zone incase the outage is zone wide
+  type: sqladmin-v1beta4:instances # sql resource type for replication
+  properties:
+    zone: {{ properties['zone'] }}  
+    masterInstanceName: $(ref.{{ instance_name }}.name) # refers to the master sql instance
+    settings:
+      tier: {{ properties['tier'] }}
+      replicationType: {{ properties['replicationType'] }} # refers to the replication type in the yaml - set as synchronous to avoid data loss
+
+- name: {{ failover_name }} # standby instance incase the master instance becomes unresponsive that Cloud SQL needs to switch to serving data from this instance
+  type: sqladmin-v1beta4:instances sql resource type incase of failure to switch to this instance
+  properties:
+    replicaConfiguration:
+      failoverTarget: true
+    zone: {{ properties['zone'] }}
+    masterInstanceName: $(ref.{{ instance_name }}.name) # refers from the master sql instance
+    settings:
+      tier: {{ properties['tier'] }}
+      replicationType: {{ properties['replicationType'] }} # refers to the replication type in the yaml - set as synchronous to avoid data loss
+{% set dependency = failover_name %}

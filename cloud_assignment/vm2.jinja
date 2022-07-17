@@ -1,0 +1,16 @@
+# second vm created for us-west1-a zone for expanded operations in the us
+resources:
+- name: vm2
+  type: compute.v1.instance # vm instance resource type
+  properties:
+    zone: {{ properties["zone"] }}
+    machineType: zones/{{ properties["zone"] }}/machineTypes/n1-standard-1 #defines the type of machine the vm will be running off - has been chosen as cost efficient over the N2 machine type and is very scalable 
+    disks: # defines the storage on the vm
+    - deviceName: boot
+      type: PERSISTENT
+      boot: true
+      autoDelete: true
+      initializeParams:
+        sourceImage: projects/debian-cloud/global/images/family/debian-10 # defines the operating system on the vm
+    networkInterfaces:
+    - subnet: {{ properties ["subnetwork"] }} # defines the custom subnet used on the vm 

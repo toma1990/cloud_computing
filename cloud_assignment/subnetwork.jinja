@@ -1,0 +1,8 @@
+# creates subnetwork instance
+resources: 
+- name: {{ env["name"] }}
+  type: compute.v1.subnetwork # subnetwork resource type
+  properties:
+    ipCidrRange: {{ properties["ipCidrRange"] }} #takes the ip range of the subnet
+    network: {{ properties["network"] }}# name of the network the subnet will use
+    region: {{ properties["region"] }} # name of the region the subnet is created in

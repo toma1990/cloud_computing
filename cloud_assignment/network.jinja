@@ -1,0 +1,6 @@
+# creates network instance
+resources: 
+- name: {{ env["name"] }}
+  type: compute.v1.network # network resource type
+  properties:
+   autoCreateSubnetworks: false # set as false to create custom subnetwork
